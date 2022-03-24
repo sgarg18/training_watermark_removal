@@ -124,6 +124,7 @@ class UpConv(nn.Module):
             if self.use_mask:
                 x1 = torch.cat((from_up, from_down, mask), 1)
             else:
+                # print("SHAPES: ",from_up.shape,from_down.shape)
                 x1 = torch.cat((from_up, from_down), 1)
         else:
             if from_down is not None:

@@ -34,18 +34,24 @@ class CLWDDataset(torch.utils.data.Dataset):
             #     (0.5,0.5,0.5)
             # )])
         self.augment_transform = get_transform(args, 
-            additional_targets={'J':'image', 'I':'image', 'watermark':'image', 'mask':'mask', 'alpha':'mask' }) #,
-        self.transform_tensor = transforms.ToTensor()
+            additional_targets={'J':'image', 'I':'image', 'watermark':'image', 'mask':'mask'}) #,
+            # additional_targets={'J':'image', 'I':'image', 'watermark':'image', 'mask':'mask', 'alpha':'mask' }) #,
 
+        self.transform_tensor = transforms.ToTensor()
         self.imageJ_path=osp.join(self.root,'Watermarked_image','%s.jpg')
         self.imageI_path=osp.join(self.root,'Watermark_free_image','%s.jpg')
         self.mask_path=osp.join(self.root,'Mask','%s.png')
 		# self.balance_path=osp.join(self.root,'Loss_balance','%s.png')
-        self.alpha_path=osp.join(self.root,'Alpha','%s.png')
-        self.W_path=osp.join(self.root,'Watermark','%s.png')
+        if args.is_train == False:
+            print(self.root)
+            # self.alpha_path=osp.join('CLWD/train','Alpha','%s.png')
+            self.W_path=osp.join(self.root,'Watermark','%s.png')
+        else:
+            # self.alpha_path=osp.join(self.root,'Alpha','%s.png')
+            self.W_path=osp.join(self.root,'Watermark','%s.png')
 		
         self.ids = list()
-        for file in os.listdir(self.root+'/Watermarked_image'):
+        for file in os.listdir(self.root+'Watermarked_image'):
             self.ids.append(file.strip('.jpg'))
         cv2.setNumThreads(0)
         cv2.ocl.setUseOpenCL(False)
@@ -57,24 +63,38 @@ class CLWDDataset(torch.utils.data.Dataset):
     
     def get_sample(self, index):
         img_id = self.ids[index]
+        img_size = (768,768)
+
         # img_id = self.corrupt_list[index % len(self.corrupt_list)].split('.')[0]
         img_J = cv2.imread(self.imageJ_path%img_id)
+        if img_J is None: print(self.img_J%img_id)
         img_J = cv2.cvtColor(img_J, cv2.COLOR_BGR2RGB)
+        img_J = cv2.resize(img_J,img_size) 
+
 
         img_I = cv2.imread(self.imageI_path%img_id)
+        if img_I is None: print(self.img_I%img_id)
         img_I = cv2.cvtColor(img_I, cv2.COLOR_BGR2RGB)
+        img_I = cv2.resize(img_I,img_size)
+
 
         w = cv2.imread(self.W_path%img_id)
         if w is None: print(self.W_path%img_id)
         w = cv2.cvtColor(w, cv2.COLOR_BGR2RGB)
+        w = cv2.resize(w,img_size) 
+
 
         mask = cv2.imread(self.mask_path%img_id)
-        alpha = cv2.imread(self.alpha_path%img_id)
+        if mask is None: print(self.mask%img_id)
+        mask = cv2.resize(mask,img_size) 
+        
+
+        # alpha = cv2.imread(self.alpha_path%img_id)
         
         mask = mask[:, :, 0].astype(np.float32) / 255.
-        alpha = alpha[:, :, 0].astype(np.float32) / 255.
-        
-        return {'J': img_J, 'I': img_I, 'watermark': w, 'mask':mask, 'alpha':alpha, 'img_path':self.imageJ_path%img_id}
+        # alpha = alpha[:, :, 0].astype(np.float32) / 255.
+        # print(img_J.shape,img_I.shape, w.shape, mask.shape)
+        return {'J': img_J, 'I': img_I, 'watermark': w, 'mask':mask, 'img_path':self.imageJ_path%img_id}
 
 
     def __getitem__(self, index):
@@ -88,16 +108,23 @@ class CLWDDataset(torch.utils.data.Dataset):
         
         mask = sample['mask'][np.newaxis, ...].astype(np.float32)
         mask = np.where(mask > 0.1, 1, 0).astype(np.uint8)
-        alpha = sample['alpha'][np.newaxis, ...].astype(np.float32)
+        # alpha = sample['alpha'][np.newaxis, ...].astype(np.float32)
 
         data = {
             'image': J,
             'target': I,
             'wm': w,
             'mask': mask,
-            'alpha':alpha,
             'img_path':sample['img_path']
         }
+        #  data = {
+        #     'image': J,
+        #     'target': I,
+        #     'wm': w,
+        #     'mask': mask,
+        #     'alpha':alpha,
+        #     'img_path':sample['img_path']
+        # }
         return data
 
     def check_sample_types(self, sample):

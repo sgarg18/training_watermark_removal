@@ -12,7 +12,8 @@ import time
 import src.networks as nets
 from math import log10
 import skimage.io
-from skimage.measure import compare_psnr,compare_ssim
+# from skimage.measure import compare_psnr,compare_ssim
+# from skimage.measure import compare_ssim
 
 from evaluation import AverageMeter
 import pytorch_ssim as pytorch_ssim
@@ -39,7 +40,7 @@ class BasicModel(object):
         
         self.title = args.name
         self.args.checkpoint = os.path.join(args.checkpoint, self.title)
-        self.device = torch.device('cuda')
+        self.device = 'cuda'
          # create checkpoint dir
         if not isdir(self.args.checkpoint):
             mkdir_p(self.args.checkpoint)
@@ -68,8 +69,8 @@ class BasicModel(object):
             # self.loss = DataParallelCriterion(self.loss, device_ids=range(torch.cuda.device_count()))
             self.model.multi_gpu()
 
-        self.model.to(self.device)
         self.loss.to(self.device)
+        self.model.to(self.device)
 
         print('==> Total params: %.2fM' % (sum(p.numel() for p in self.model.parameters())/1000000.0))
         print('==> Total devices: %d' % (torch.cuda.device_count()))
@@ -200,10 +201,10 @@ class BasicModel(object):
             raise Exception("=> no checkpoint found at '{}'".format(resume_path))
 
         print("=> loading checkpoint '{}'".format(resume_path))
+        print("Check here : ",resume_path)
         current_checkpoint = torch.load(resume_path)
         if isinstance(current_checkpoint['state_dict'], torch.nn.DataParallel):
             current_checkpoint['state_dict'] = current_checkpoint['state_dict'].module
-
         if isinstance(current_checkpoint['optimizer'], torch.nn.DataParallel):
             current_checkpoint['optimizer'] = current_checkpoint['optimizer'].module
 
@@ -242,6 +243,7 @@ class BasicModel(object):
                 }
 
         filepath = os.path.join(self.args.checkpoint, filename)
+        print("Atharv idhar Checkpoint save hua ",filepath)
         torch.save(state, filepath)
 
         if snapshot and state['epoch'] % snapshot == 0:

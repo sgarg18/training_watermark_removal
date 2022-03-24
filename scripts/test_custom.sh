@@ -4,11 +4,11 @@ K_SKIP=3
 MASK_MODE=res
 
 
-INPUT_SIZE=256
+INPUT_SIZE=512
 NAME=slbr_v1
-TEST_DIR=/media/sda/Watermark
+TEST_DIR=test_infer
 
-CUDA_VISIBLE_DEVICES=1 python3  test_custom.py \
+python3  test_custom.py \
   --name ${NAME} \
   --nets slbr \
   --models slbr \
@@ -23,6 +23,7 @@ CUDA_VISIBLE_DEVICES=1 python3  test_custom.py \
   --use_refine \
   --k_refine ${K_REFINE} \
   --k_skip_stage ${K_SKIP} \
-  --resume /media/sda/Watermark/${NAME}/model_best.pth.tar \
-  --test_dir ${TEST_DIR} 
+  --resume 2021/SLBR-Visible-Watermark-Removal/checkpoint/slbr_v1/checkpoint.pth.tar \
+  --test_dir ${TEST_DIR}
+  # --checkpoint 2021/SLBR-Visible-Watermark-Removal/checkpoint 
   

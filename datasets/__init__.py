@@ -2,11 +2,12 @@
 # from .BIH import BIH
 from .clwd_dataset import CLWDDataset
 from .lvw_dataset import LVWDataset
+from .spyne_dataset import SpyneDataset
 import importlib
 import torch.utils.data
 from datasets.base_dataset import BaseDataset
 
-__all__ = ('CLWDDataset', 'LVWDataset')
+__all__ = ('CLWDDataset', 'LVWDataset', 'SpyneDataset')
 
 
 

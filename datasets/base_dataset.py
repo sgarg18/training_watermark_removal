@@ -11,6 +11,7 @@ import cv2
 from abc import ABC, abstractmethod
 from albumentations import HorizontalFlip, RandomResizedCrop, Compose, DualTransform
 import albumentations.augmentations.transforms as transforms
+import albumentations.augmentations.geometric as geometric
 
 class BaseDataset(data.Dataset, ABC):
     """This class is an abstract base class (ABC) for datasets.
@@ -103,7 +104,7 @@ def get_transform(opt, params=None, grayscale=False, convert=True, additional_ta
         if params is None:
             transform_list.append(RandomResizedCrop(opt.crop_size, opt.crop_size, scale=(0.9, 1.0))) # 0.5,1.0
     elif opt.preprocess == 'resize':
-        transform_list.append(transforms.Resize(opt.input_size, opt.input_size))
+        transform_list.append(geometric.resize.Resize(opt.input_size, opt.input_size))
     elif opt.preprocess == 'none':
         return HCompose(transform_list)
 

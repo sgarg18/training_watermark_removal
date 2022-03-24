@@ -13,9 +13,11 @@ import datasets as datasets
 import src.models as models
 from options import Options
 import torch.nn.functional as F
-import pytorch_ssim
+# import pytorch_ssim
 from evaluation import compute_IoU, FScore, AverageMeter, compute_RMSE, normPRED
-from skimage.measure import compare_ssim as ssim
+# from skimage.measure import compare_ssim as ssim
+# from pytorch_msssim import ssim, SSIM
+# from skimage.metrics import structural_similarity as ssim
 import time
 
 
@@ -64,6 +66,10 @@ def save_output(inputs, preds, save_dir, img_fn, extra_infos=None,  verbose=Fals
         f1 = extra_infos['f1']
 
         img_fn = os.path.split(img_fn)[-1]
+        print(os.path.splitext(img_fn)[0])
+        # changes here
+        if os.path.splitext(img_fn)[0] == '2':
+            cv2.imwrite("2kaoutput.png",bg_pred)
         out_fn = os.path.join(save_dir, "{}_psnr_{:.2f}_rmsew_{:.2f}_f1_{:.4f}{}".format(os.path.splitext(img_fn)[0],psnr,rmsew, f1, os.path.splitext(img_fn)[1]))
         cv2.imwrite(out_fn, outimg)
 
@@ -75,10 +81,12 @@ def main(args):
     args.dataset = args.dataset.lower()
     if args.dataset == 'clwd':
         dataset_func = datasets.CLWDDataset
+    if args.dataset == 'spyne':
+        dataset_func = datasets.SpyneDataset
     elif args.dataset == 'lvw':
         dataset_func = datasets.LVWDataset
     
-    val_loader = torch.utils.data.DataLoader(dataset_func('test',args),batch_size=args.test_batch, shuffle=False,
+    val_loader = torch.utils.data.DataLoader(dataset_func('test',args),batch_size=args.test_batch, shuffle=False, #args.test_batch
         num_workers=args.workers, pin_memory=True)
     data_loaders = (None,val_loader)
 
@@ -90,7 +98,7 @@ def main(args):
     print("==> testing VM model ")
     rmses = AverageMeter()
     rmsews = AverageMeter()
-    ssimesx = AverageMeter()
+    # ssimesx = AverageMeter()
     psnresx = AverageMeter()
     maskIoU = AverageMeter()
     maskF1 = AverageMeter()
@@ -98,13 +106,15 @@ def main(args):
     prime_maskF1 = AverageMeter()
     processTime = AverageMeter()
 
-    prediction_dir = os.path.join(args.checkpoint,'rst')
+    # prediction_dir = os.path.join(args.checkpoint,'best_model')
+    prediction_dir = os.path.join(args.checkpoint,'checkpoint_model_21march')
+
     if not os.path.exists(prediction_dir): os.makedirs(prediction_dir)
     
-    save_flag = False
+    save_flag = True
+    print("before")
     with torch.no_grad():
         for i, batches in enumerate(model.val_loader):
-
             inputs = batches['image'].to(model.device)
             target = batches['target'].to(model.device)
             mask =batches['mask'].to(model.device)
@@ -127,7 +137,12 @@ def main(args):
             final_np = (imfinal.detach().cpu().numpy()[0].transpose(1,2,0)*255).astype(np.uint8)
             target_np = (target.detach().cpu().numpy()[0].transpose(1,2,0)*255).astype(np.uint8)
             # ssimx = ssim(final_np, target_np, multichannel=True)
-            ssimx = pytorch_ssim.ssim(imfinal, target)
+            # print(imfinal.shape,target.shape)
+            # ssimx = pytorch_ssim.ssim(imfinal, target)
+            # ssimx =ssim(imfinal, target)
+            # print(ssimx)
+
+            # ssimx = ssim(imfinal, target,multichannel = True)
             
             
             
@@ -136,7 +151,7 @@ def main(args):
             rmses.update(rmsex, inputs.size(0))
             rmsews.update(rmsewx, inputs.size(0))
             psnresx.update(psnrx, inputs.size(0))
-            ssimesx.update(ssimx, inputs.size(0))
+            # ssimesx.update(ssimx, inputs.size(0))
 
 
             main_mask = immask_all[1::2]
@@ -168,10 +183,12 @@ def main(args):
                     verbose=False
                 )
             if i % 100 == 0:
-                print("Batch[%d/%d]| PSNR:%.4f | SSIM:%.4f | RMSE:%.4f | RMSEw:%.4f | primeIoU:%.4f, primeF1:%.4f | maskIoU:%.4f | maskF1:%.4f | time:%.2f"
-                %(i,len(model.val_loader),psnresx.avg,ssimesx.avg, rmses.avg, rmsews.avg, prime_maskIoU.avg, prime_maskF1.avg, maskIoU.avg, maskF1.avg, processTime.avg))
-    print("Total:\nPSNR:%.4f | SSIM:%.4f | RMSE:%.4f | RMSEw:%.4f | primeIoU:%.4f, primeF1:%.4f | maskIoU:%.4f | maskF1:%.4f | time:%.2f"
-                %(psnresx.avg,ssimesx.avg, rmses.avg, rmsews.avg, prime_maskIoU.avg, prime_maskF1.avg, maskIoU.avg, maskF1.avg, processTime.avg))
+                print("Batch[%d/%d]| PSNR:%.4f |  | RMSE:%.4f | RMSEw:%.4f | primeIoU:%.4f, primeF1:%.4f | maskIoU:%.4f | maskF1:%.4f | time:%.2f"
+                %(i,len(model.val_loader),psnresx.avg, rmses.avg, rmsews.avg, prime_maskIoU.avg, prime_maskF1.avg, maskIoU.avg, maskF1.avg, processTime.avg))
+    print("Total:\nPSNR:%.4f |  | RMSE:%.4f | RMSEw:%.4f | primeIoU:%.4f, primeF1:%.4f | maskIoU:%.4f | maskF1:%.4f | time:%.2f"
+                %(psnresx.avg, rmses.avg, rmsews.avg, prime_maskIoU.avg, prime_maskF1.avg, maskIoU.avg, maskF1.avg, processTime.avg))
+                # print("Total:\nPSNR:%.4f | SSIM:%.4f | RMSE:%.4f | RMSEw:%.4f | primeIoU:%.4f, primeF1:%.4f | maskIoU:%.4f | maskF1:%.4f | time:%.2f"
+                # %(psnresx.avg,ssimesx.avg, rmses.avg, rmsews.avg, prime_maskIoU.avg, prime_maskF1.avg, maskIoU.avg, maskF1.avg, processTime.avg))
     print("DONE.\n")
 
 

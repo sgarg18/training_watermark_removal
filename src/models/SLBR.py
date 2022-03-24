@@ -15,10 +15,12 @@ from src.utils.parallel import DataParallelModel, DataParallelCriterion
 from src.utils.losses import VGGLoss, l1_relative,is_dic
 from src.utils.imutils import im_to_numpy
 import skimage.io
-from skimage.measure import compare_psnr,compare_ssim
+# from skimage.measure import compare_psnr,compare_ssim
 import torchvision
 import pytorch_iou
 import pytorch_ssim
+
+import wandb
 
 class Losses(nn.Module):
     def __init__(self, argx, device, norm_func, denorm_func):
@@ -113,7 +115,7 @@ class SLBR(BasicModel):
             mask = batches['mask'].float().to(self.device)
             # wm =  batches['wm'].float().to(self.device)
             # alpha_gt = batches['alpha'].float().to(self.device)
-            img_path = batches['img_path']
+            # img_path = batches['img_path']
             
             outputs = self.model(self.norm(inputs))
             self.model.zero_grad_all()
@@ -158,10 +160,20 @@ class SLBR(BasicModel):
                         mask_f1=f1_meter.avg,
                         )
             if current_index % 100 == 0:
+
+                wandb.log({
+                        "batch": i+1,
+                        "size": len(self.train_loader),
+                        "loss_label":losses_meter.avg,
+                        "loss_refine":loss_refine_meter.avg,
+                        "loss_vgg":loss_vgg_meter.avg,
+                        "loss_mask":loss_mask_meter.avg,
+                        "mask_f1":f1_meter.avg})
+
                 print(suffix)
 
             if self.args.freq > 0 and current_index % self.args.freq == 0:
-                self.validate(current_index)
+                # self.validate(current_index)
                 self.flush()
                 self.save_checkpoint()
             if i % 100 == 0:
@@ -183,6 +195,9 @@ class SLBR(BasicModel):
                     outputs[1][-2][0:show_size].detach().cpu().repeat(1,3,1,1)
                 ],dim=0)
                 image_dis = torchvision.utils.make_grid(self.image_display, nrow=show_size)
+
+                wandb.log({'Train Examples': wandb.Image(image_dis,caption = current_index)})
+
                 self.writer.add_image('Image', image_dis, current_index)
             del outputs
 

@@ -1,0 +1,12 @@
+custom_dataset2/
+custom_dataset/
+CLWD/
+custom_clwd/
+checkpoint/
+pre-trained_model/
+2021/
+train2017/
+test_infer/
+watermarks/
+Watermarks.rar
+wandb/
