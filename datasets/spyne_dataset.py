@@ -27,12 +27,10 @@ class SpyneDataset(torch.utils.data.Dataset):
             args.preprocess = 'resize'
             args.no_flip = True
 
-        self.img_size = args.crop_size
+        self.img_size = (args.crop_size,args.crop_size)
         # Paths 
         self.watermarks_path='watermarks'
         self.base_img_path=osp.join(root_dataset,'%s.jpg') #update this path - jpg part
-
-
         # Transformations
         self.base_img_transformations = A.Compose([
         A.Flip(),
@@ -49,22 +47,23 @@ class SpyneDataset(torch.utils.data.Dataset):
         ], p=0.3),
         A.HueSaturationValue(p=0.3),
         # A.Resize(self.img_size, self.img_size, interpolation=cv2.INTER_LINEAR),
+        A.RandomResizedCrop(self.img_size[0],self.img_size[1],scale=(0.5,1.0), ratio=(0.5, 2.),p=0.6),
+
         ])
 
         self.watermark_transformation = A.Compose([
             A.GridDistortion(p=0.2),
             A.Flip(p=0.3),
             A.ElasticTransform(alpha=1, sigma=50, alpha_affine=150, approximate=True, same_dxdy=True, p=0.2),
-            A.Sharpen(p=0.4),          
+            A.Sharpen(p=0.5),          
             A.OneOf([
                 A.MotionBlur(p=.2),
                 A.MedianBlur(blur_limit=3, p=0.3),
                 A.Blur(blur_limit=3, p=0.1),
             ], p=0.2),
             A.Affine(scale=(0.8,1.), translate_percent=(-0.10, 0.10), rotate=(-30, 30), shear=(-10,10), interpolation=cv2.INTER_LINEAR),
-            # ! check here once size
-            A.RandomResizedCrop(self.img_size, self.img_size, scale=(0.2,1.0), ratio=(0.5, 2.),p=0.1),
-            # A.Resize(self.img_size, self.img_size, interpolation=cv2.INTER_LINEAR),
+            # A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=50, val_shift_limit=50),
+            A.RandomResizedCrop(self.img_size[0],self.img_size[1],scale=(0.5,1.0), ratio=(0.5, 2.),p=0.6),
         ])
 
         self.args = args
@@ -101,20 +100,24 @@ class SpyneDataset(torch.utils.data.Dataset):
         base_img = cv2.cvtColor(base_img, cv2.COLOR_BGR2RGB)
 
         # Selecting random watermark
-        idx = random.randint(0, len(self.watermark_folder_list))
+        idx = random.randint(0, len(self.watermark_folder_list)-1)
         watermark_img_name = self.watermark_folder_list[idx]
         watermark_img_path = os.path.join(self.watermarks_path,watermark_img_name)
         watermark = Image.open(watermark_img_path)
         # Resizing to base size
-        watermark = watermark.resize((base_img.shape[1],base_img.shape[0]))
+        # self.base_img_size = base_img.shape
+        # watermark = watermark.resize((base_img.shape[1],base_img.shape[0]))
 
 
         # Transformations :
         base_img_transformed = self.base_img_transformations(image=base_img)
         watermark_transformed = self.watermark_transformation(image =np.array(watermark))
-
-
-        # mask part _______________
+        
+        watermarked_image = Image.fromarray(base_img_transformed['image'])
+        watermark_transformed = Image.fromarray(watermark_transformed['image'])
+        watermark_transformed = watermark.resize(watermarked_image.size)
+        
+        # mask part
         wmnp = np.array(watermark_transformed)
         mask = np.sum(wmnp,axis=2)>0
         final_mask = np.uint8(mask*255)
@@ -122,15 +125,17 @@ class SpyneDataset(torch.utils.data.Dataset):
         watermarked_image = np.array(watermarked_image)
 
         aug_base_img = base_img_transformed['image']
-        
+
+        watermark = np.array(watermark_transformed)
+
         # Resizing to input_size
-        final_mask = cv2.resize(final_mask,img_size)
-        watermarked_image = cv2.resize(watermarked_image,img_size)
-        base_img = cv2.resize(base_img,img_size)
-        watermark = cv2.resize(watermark,img_size)
+        final_mask = cv2.resize(final_mask, self.img_size)
+        watermarked_image = cv2.resize(watermarked_image, self.img_size)
+        base_img = cv2.resize(base_img, self.img_size)
+        watermark = cv2.resize(watermark, self.img_size)
 
-
-        return {'J': watermarked_image, 'I': base_img, 'watermark': watermark, 'mask':final_mask}
+        # print("Shapes : ", final_mask.shape,watermarked_image.shape,base_img.shape, watermark.shape)
+        return {'J': watermarked_image, 'I': aug_base_img, 'watermark': watermark, 'mask':final_mask}
 
     def __getitem__(self, index):
         sample = self.get_sample(index)

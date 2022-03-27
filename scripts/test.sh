@@ -3,8 +3,8 @@ K_REFINE=3
 K_SKIP=3
 MASK_MODE=res
 
-INPUT_SIZE=512
-DATASET=CLWD
+INPUT_SIZE=768
+DATASET=spyne
 NAME=slbr_v1
 
 python3  test.py \
@@ -12,7 +12,7 @@ python3  test.py \
   --models slbr \
   --input-size ${INPUT_SIZE} \
   --crop_size ${INPUT_SIZE} \
-  --test-batch 2 \
+  --test-batch 1 \
   --evaluate\
   --dataset_dir custom_dataset \
   --preprocess resize \

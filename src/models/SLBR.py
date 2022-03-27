@@ -1,3 +1,4 @@
+from re import X
 import torch
 import torch.nn as nn
 from progress.bar import Bar
@@ -26,7 +27,7 @@ class Losses(nn.Module):
     def __init__(self, argx, device, norm_func, denorm_func):
         super(Losses, self).__init__()
         self.args = argx
-        self.masked_l1_loss, self.mask_loss = l1_relative, nn.BCELoss()
+        self.masked_l1_loss, self.mask_loss = l1_relative, nn.BCEWithLogitsLoss()
         self.l1_loss = nn.L1Loss()
 
         if self.args.lambda_content > 0:
@@ -39,6 +40,8 @@ class Losses(nn.Module):
         self.gamma = 0.5
         self.norm = norm_func
         self.denorm = denorm_func
+
+    def inverse_sigmoid(self, x): return x #-torch.log((1 /(x + 1e-8)) - 1)
 
     def forward(self, synthesis, pred_ims, target, pred_ms, mask, threshold=0.5):
         pixel_loss, refine_loss, vgg_loss, mask_loss = [0]*4
@@ -64,11 +67,18 @@ class Losses(nn.Module):
         mask = mask.clamp(0,1)
 
         final_mask_loss = 0
+
+        # print(pred_ms[0].min(), pred_ms[0].max())
+        pred_ms[0]=(pred_ms[0])
+        # print(pred_ms[0].min(), pred_ms[0].max())
         final_mask_loss += self.mask_loss(pred_ms[0], mask)
         
         primary_mask = pred_ms[1::2][::-1]
         self_calibrated_mask = pred_ms[2::2][::-1]
         # primary prediction
+        # print(primary_mask)
+        # print(len(primary_mask))
+        
         primary_loss =  sum([self.mask_loss(pred_m, mask) * (self.gamma**i) for i,pred_m in enumerate(primary_mask)])
         # self calibrated Branch
         self_calibrated_loss =  sum([self.mask_loss(pred_m, mask) * (self.gamma**i) for i,pred_m in enumerate(self_calibrated_mask)])
@@ -91,7 +101,7 @@ class SLBR(BasicModel):
         if self.args.resume != '':
             self.resume(self.args.resume)
        
-    def train(self,epoch):
+    def train(self,epoch,scaler):
 
         self.current_epoch = epoch
 
@@ -116,17 +126,17 @@ class SLBR(BasicModel):
             # wm =  batches['wm'].float().to(self.device)
             # alpha_gt = batches['alpha'].float().to(self.device)
             # img_path = batches['img_path']
-            
-            outputs = self.model(self.norm(inputs))
             self.model.zero_grad_all()
-            coarse_loss, refine_loss, style_loss, mask_loss = self.loss(
-                inputs,outputs[0],self.norm(target),outputs[1],mask)
-            
-            total_loss = self.args.lambda_l1*(coarse_loss+refine_loss) + self.args.lambda_mask * (mask_loss)  + style_loss
+
+            with torch.cuda.amp.autocast(enabled = False):
+                outputs = self.model(self.norm(inputs))
+                coarse_loss, refine_loss, style_loss, mask_loss = self.loss(
+                    inputs,outputs[0],self.norm(target),outputs[1],mask)
+                total_loss = self.args.lambda_l1*(coarse_loss+refine_loss) + self.args.lambda_mask * (mask_loss)  + style_loss
             
             # compute gradient and do SGD step
-            total_loss.backward()
-            self.model.step_all()
+            scaler.scale(total_loss).backward() #total_loss.backward()    
+            self.model.step_all(scaler)
 
             # measure accuracy and record loss
             losses_meter.update(coarse_loss.item(), inputs.size(0))

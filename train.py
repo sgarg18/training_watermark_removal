@@ -45,20 +45,22 @@ def main(args):
     lr = args.lr
     data_loaders = (train_loader,val_loader)
 
-    wandb.init(project="watermark-slbr-1", config = args)
+    wandb.init(project="watermark-slbr-1", config = args) # ,mode ="disabled"
 
     model = models.__dict__[args.models](datasets=data_loaders, args=args)
 
     print('============================ Initization Finish && Training Start =============================================')
+    
+    # Grad scaler for MP
+    scaler = torch.cuda.amp.GradScaler(enabled = False) 
 
-    # wandb.watch(model, log_freq=1000)
     try :
         for epoch in range(model.args.start_epoch, model.args.epochs):
             lr = adjust_learning_rate(data_loaders, model, epoch, lr, args)
             print('\nEpoch: %d | LR: %.8f' % (epoch + 1, lr))
 
             model.record('lr',lr, epoch)        
-            model.train(epoch)
+            model.train(epoch,scaler)
             # model.validate(epoch)
             if args.freq < 0:
                 # model.validate(epoch)

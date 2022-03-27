@@ -11,7 +11,7 @@ import random
 
 class CLWDDataset(torch.utils.data.Dataset):
     def __init__(self, is_train, args):
-        
+        self.input_size = args.crop_size
         args.is_train = is_train == 'train'
         if args.is_train == True:
             self.root = args.dataset_dir + '/train/'
@@ -63,7 +63,7 @@ class CLWDDataset(torch.utils.data.Dataset):
     
     def get_sample(self, index):
         img_id = self.ids[index]
-        img_size = (768,768)
+        img_size = (self.input_size,self.input_size)
 
         # img_id = self.corrupt_list[index % len(self.corrupt_list)].split('.')[0]
         img_J = cv2.imread(self.imageJ_path%img_id)

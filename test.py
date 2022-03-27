@@ -65,12 +65,12 @@ def save_output(inputs, preds, save_dir, img_fn, extra_infos=None,  verbose=Fals
         rmsew = extra_infos['rmsew']
         f1 = extra_infos['f1']
 
-        img_fn = os.path.split(img_fn)[-1]
-        print(os.path.splitext(img_fn)[0])
+        # img_fn = os.path.split(img_fn)[-1]
+        # print(os.path.splitext(img_fn)[0])
         # changes here
-        if os.path.splitext(img_fn)[0] == '2':
-            cv2.imwrite("2kaoutput.png",bg_pred)
-        out_fn = os.path.join(save_dir, "{}_psnr_{:.2f}_rmsew_{:.2f}_f1_{:.4f}{}".format(os.path.splitext(img_fn)[0],psnr,rmsew, f1, os.path.splitext(img_fn)[1]))
+        # if os.path.splitext(img_fn)[0] == '2':
+        #     cv2.imwrite("2kaoutput.png",bg_pred)
+        out_fn = os.path.join(save_dir, "{}_psnr_{:.2f}_rmsew_{:.2f}_f1_{:.4f}.jpg".format(img_fn,psnr,rmsew, f1))
         cv2.imwrite(out_fn, outimg)
 
 
@@ -107,7 +107,7 @@ def main(args):
     processTime = AverageMeter()
 
     # prediction_dir = os.path.join(args.checkpoint,'best_model')
-    prediction_dir = os.path.join(args.checkpoint,'checkpoint_model_21march')
+    prediction_dir = os.path.join(args.checkpoint,'checkpoint_model_27march-768')
 
     if not os.path.exists(prediction_dir): os.makedirs(prediction_dir)
     
@@ -119,7 +119,7 @@ def main(args):
             target = batches['target'].to(model.device)
             mask =batches['mask'].to(model.device)
             wm =  batches['wm'].float().to(model.device)
-            img_path = batches['img_path']
+            # img_path = batches['img_path']
 
             # select the outputs by the giving arch
             start_time = time.time()
@@ -172,13 +172,14 @@ def main(args):
             maskIoU.update(iou)
             f1 = FScore(mask_pred, mask).item()
             maskF1.update(f1, inputs.size(0))
+            
 
             if save_flag:
                 save_output(
                     inputs={'I':inputs, 'bg':target,  'mask':mask}, 
                     preds={'bg':imfinal, 'mask':immask_all}, 
                     save_dir=prediction_dir, 
-                    img_fn=img_path[0], 
+                    img_fn=i, 
                     extra_infos={"psnr":psnrx, "rmsew":rmsewx, "f1":f1},
                     verbose=False
                 )

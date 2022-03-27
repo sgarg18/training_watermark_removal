@@ -10,7 +10,7 @@ PRIMARY_LOSS=0.01
 IOU_LOSS=0.25 
 
 INPUT_SIZE=768
-DATASET=CLWD
+DATASET=spyne
 NAME=slbr_v1
 # nohup python -u   main.py \
 python -u train.py \
@@ -19,7 +19,7 @@ python -u train.py \
  --lr 1e-3 \
  --gpu_id 0 \
  --checkpoint 2021/SLBR-Visible-Watermark-Removal/checkpoint \
- --dataset_dir custom_dataset2 \
+ --dataset_dir custom_dataset \
  --nets slbr  \
  --sltype vggx \
  --mask_mode ${MASK_MODE} \
@@ -42,6 +42,6 @@ python -u train.py \
  --use_refine \
  --k_refine ${K_REFINE} \
  --k_skip_stage ${K_SKIP} \
- --start-epoch 71 \
+ --start-epoch 86 \
  --resume 2021/SLBR-Visible-Watermark-Removal/checkpoint/slbr_v1/checkpoint.pth.tar \
  --freq 3000
