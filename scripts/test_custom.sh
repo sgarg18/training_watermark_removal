@@ -4,7 +4,7 @@ K_SKIP=3
 MASK_MODE=res
 
 
-INPUT_SIZE=512
+INPUT_SIZE=768
 NAME=slbr_v1
 TEST_DIR=test_infer
 
@@ -25,5 +25,6 @@ python3  test_custom.py \
   --k_skip_stage ${K_SKIP} \
   --resume 2021/SLBR-Visible-Watermark-Removal/checkpoint/slbr_v1/checkpoint.pth.tar \
   --test_dir ${TEST_DIR}
+  
   # --checkpoint 2021/SLBR-Visible-Watermark-Removal/checkpoint 
   

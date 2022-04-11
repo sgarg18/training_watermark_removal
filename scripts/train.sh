@@ -9,7 +9,7 @@ STYLE_LOSS=2.5e-1
 PRIMARY_LOSS=0.01
 IOU_LOSS=0.25 
 
-INPUT_SIZE=768
+INPUT_SIZE=512
 DATASET=spyne
 NAME=slbr_v1
 # nohup python -u   main.py \
@@ -17,7 +17,7 @@ python -u train.py \
  --epochs 100 \
  --schedule 65 \
  --lr 1e-3 \
- --gpu_id 0 \
+ --gpu_id 0,1,2,3 \
  --checkpoint 2021/SLBR-Visible-Watermark-Removal/checkpoint \
  --dataset_dir custom_dataset \
  --nets slbr  \
@@ -33,7 +33,7 @@ python -u train.py \
  --models slbr \
  --input-size ${INPUT_SIZE} \
  --crop_size ${INPUT_SIZE} \
- --train-batch 1 \
+ --train-batch 4 \
  --test-batch 1 \
  --preprocess resize \
  --name ${NAME} \

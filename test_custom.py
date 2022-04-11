@@ -55,7 +55,7 @@ def save_output(inputs, preds, save_dir, img_fn, extra_infos=None,  verbose=Fals
         out_fn_pred = os.path.join(save_dir, "single{}{}".format(os.path.splitext(img_fn)[0], os.path.splitext(img_fn)[1]))
         cv2.imwrite(out_fn_pred, bg_pred_resized)
 
-def preprocess(file_path, img_size=512):
+def preprocess(file_path, img_size):
     img_J = cv2.imread(file_path)
     assert img_J is not None, "NoneType"
     h,w,_ = img_J.shape
@@ -109,6 +109,7 @@ def main(args):
     with torch.no_grad():
         for i, batches in enumerate(zip(doc_loader, fns)):
             inputs, fn = batches[0], batches[1]
+            print(inputs.size())
             inputs = inputs.to(model.device).float()
             outputs = model.model(inputs)
             imoutput,immask_all,imwatermark = outputs

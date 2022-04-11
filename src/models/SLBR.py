@@ -100,6 +100,7 @@ class SLBR(BasicModel):
         self.model.set_optimizers()
         if self.args.resume != '':
             self.resume(self.args.resume)
+        # self.model.multi_gpu()
        
     def train(self,epoch,scaler):
 
@@ -114,6 +115,8 @@ class SLBR(BasicModel):
         f1_meter = AverageMeter()
         # switch to train mode
         self.model.train()
+        
+        # self.save_checkpoint()
 
         end = time.time()
         bar = Bar('Processing {} '.format(self.args.nets), max=len(self.train_loader))

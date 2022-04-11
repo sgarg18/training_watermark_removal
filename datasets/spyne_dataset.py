@@ -47,7 +47,7 @@ class SpyneDataset(torch.utils.data.Dataset):
         ], p=0.3),
         A.HueSaturationValue(p=0.3),
         # A.Resize(self.img_size, self.img_size, interpolation=cv2.INTER_LINEAR),
-        A.RandomResizedCrop(self.img_size[0],self.img_size[1],scale=(0.5,1.0), ratio=(0.5, 2.),p=0.6),
+        A.RandomResizedCrop(self.img_size[0],self.img_size[1],scale=(0.5,1.0), ratio=(0.5, 2.),p=0.8),
 
         ])
 
@@ -63,7 +63,7 @@ class SpyneDataset(torch.utils.data.Dataset):
             ], p=0.2),
             A.Affine(scale=(0.8,1.), translate_percent=(-0.10, 0.10), rotate=(-30, 30), shear=(-10,10), interpolation=cv2.INTER_LINEAR),
             # A.HueSaturationValue(hue_shift_limit=20, sat_shift_limit=50, val_shift_limit=50),
-            A.RandomResizedCrop(self.img_size[0],self.img_size[1],scale=(0.5,1.0), ratio=(0.5, 2.),p=0.6),
+            A.RandomResizedCrop(self.img_size[0],self.img_size[1],scale=(0.5,1.0), ratio=(0.5, 2.),p=0.8),
         ])
 
         self.args = args

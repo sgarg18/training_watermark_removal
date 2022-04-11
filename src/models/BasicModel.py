@@ -58,7 +58,8 @@ class BasicModel(object):
         self.current_epoch = 0
         self.metric = -100000
         self.hl = 6 if self.args.hl else 1
-        self.count_gpu = len(range(torch.cuda.device_count()))
+        self.count_gpu = torch.cuda.device_count()
+        print("Number of GPU: ",self.count_gpu)
 
         if self.args.lambda_style > 0:
             # init perception loss
@@ -67,6 +68,7 @@ class BasicModel(object):
         if self.count_gpu > 1 : # multiple
             # self.model = DataParallelModel(self.model, device_ids=range(torch.cuda.device_count()))
             # self.loss = DataParallelCriterion(self.loss, device_ids=range(torch.cuda.device_count()))
+            print("Ran with multi gpu")
             self.model.multi_gpu()
 
         self.loss.to(self.device)
@@ -195,6 +197,7 @@ class BasicModel(object):
         
     def resume(self,resume_path):
         # if isfile(resume_path):
+        print(resume_path)
         if not os.path.exists(resume_path):
             resume_path = os.path.join(self.args.checkpoint, 'checkpoint.pth.tar')
         if not os.path.exists(resume_path):
@@ -237,7 +240,7 @@ class BasicModel(object):
         state = {
                     'epoch': self.current_epoch + 1,
                     'nets': self.args.nets,
-                    'state_dict': self.model.state_dict(),
+                    'state_dict':  self.model.state_dict(), #torch.nn.DataParallel(self.model).state_dict(),
                     'best_acc': self.best_acc,
                     'optimizer' : self.optimizer.state_dict() if self.optimizer else None,
                 }
