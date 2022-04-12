@@ -25,6 +25,5 @@ python3  test_custom.py \
   --k_skip_stage ${K_SKIP} \
   --resume 2021/SLBR-Visible-Watermark-Removal/checkpoint/slbr_v1/checkpoint.pth.tar \
   --test_dir ${TEST_DIR}
-  
   # --checkpoint 2021/SLBR-Visible-Watermark-Removal/checkpoint 
   

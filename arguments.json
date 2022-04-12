@@ -1,0 +1,8 @@
+{
+    "name" : "slbr_v1",
+    "nets" : "slbr",
+    "models": "slbr",
+    "input-size": 768,
+    "crop_size" : 768,
+    "test-batch" :1
+}
