@@ -27,7 +27,7 @@ class Losses(nn.Module):
     def __init__(self, argx, device, norm_func, denorm_func):
         super(Losses, self).__init__()
         self.args = argx
-        self.masked_l1_loss, self.mask_loss = l1_relative, nn.BCEWithLogitsLoss()
+        self.masked_l1_loss, self.mask_loss = l1_relative, nn.BCEWithLogitsLoss() #nn.BCEWithLogitsLoss()
         self.l1_loss = nn.L1Loss()
 
         if self.args.lambda_content > 0:
@@ -131,7 +131,7 @@ class SLBR(BasicModel):
             # img_path = batches['img_path']
             self.model.zero_grad_all()
 
-            with torch.cuda.amp.autocast(enabled = False):
+            with torch.cuda.amp.autocast(enabled = True):
                 outputs = self.model(self.norm(inputs))
                 coarse_loss, refine_loss, style_loss, mask_loss = self.loss(
                     inputs,outputs[0],self.norm(target),outputs[1],mask)

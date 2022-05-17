@@ -8,7 +8,7 @@ INPUT_SIZE=768
 NAME=slbr_v1
 TEST_DIR=test_infer
 
-python3  tracing.py \
+python3  test_custom_copy.py \
   --name ${NAME} \
   --nets slbr \
   --models slbr \

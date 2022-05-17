@@ -45,14 +45,14 @@ def main(args):
     lr = args.lr
     data_loaders = (train_loader,val_loader)
 
-    wandb.init(project="watermark-slbr-1", config = args) # ,mode ="disabled"
+    wandb.init(project="watermark-slbr-1", config = args,mode ="disabled") # ,mode ="disabled"
 
     model = models.__dict__[args.models](datasets=data_loaders, args=args)
 
     print('============================ Initization Finish && Training Start =============================================')
     
     # Grad scaler for MP
-    scaler = torch.cuda.amp.GradScaler(enabled = False) 
+    scaler = torch.cuda.amp.GradScaler(enabled = True) 
 
     try :
         for epoch in range(model.args.start_epoch, model.args.epochs):

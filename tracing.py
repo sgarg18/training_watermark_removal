@@ -14,7 +14,6 @@ import src.models as models
 from options import Options
 import torch.nn.functional as F
 
-print(torch.__version__)
 
 image = cv2.imread("test_infer/Images/1-4k.jpeg")
 data = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)

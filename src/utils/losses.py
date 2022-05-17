@@ -35,6 +35,7 @@ class WeightedBCE(nn.Module):
         super(WeightedBCE, self).__init__()
 
     def forward(self, pred, gt):
+        print("this is usedddddddddddddddddd")
         eposion = 1e-10
         sigmoid_pred = torch.sigmoid(pred)
         count_pos = torch.sum(gt)*1.0+eposion
@@ -67,7 +68,7 @@ class Losses(nn.Module):
     def __init__(self, argx, device):
         super(Losses, self).__init__()
         self.args = argx
-
+        print("this even raaan????-----")
         if self.args.loss_type == 'l1bl2':
             self.outputLoss, self.attLoss, self.wrloss = nn.L1Loss(), nn.BCELoss(), nn.MSELoss()
         elif self.args.loss_type == 'l1wbl2':
@@ -77,6 +78,7 @@ class Losses(nn.Module):
         elif self.args.loss_type == 'l2xbl2':
             self.outputLoss, self.attLoss, self.wrloss = nn.MSELoss(), nn.BCEWithLogitsLoss(), nn.MSELoss()
         else: # l2bl2
+            print("------------> else loss ran ")
             self.outputLoss, self.attLoss, self.wrloss = nn.MSELoss(), nn.BCELoss(), nn.MSELoss()
 
         if self.args.lambda_style > 0:
