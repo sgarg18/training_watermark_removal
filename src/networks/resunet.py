@@ -303,19 +303,19 @@ class SLBR(nn.Module):
             self.optimizer_refine.zero_grad(set_to_none=True)
 
     def step_all(self,scaler):
-        # self.optimizer_encoder.step()
-        scaler.step(self.optimizer_encoder)
+        self.optimizer_encoder.step()
+        # scaler.step(self.optimizer_encoder)
         if self.shared != 0:
-            #    self.optimizer_shared.step()
-               scaler.step(self.optimizer_shared)
-        # self.optimizer_image.step()
-        scaler.step(self.optimizer_image)
+            self.optimizer_shared.step()
+            # scaler.step(self.optimizer_shared)
+        self.optimizer_image.step()
+        # scaler.step(self.optimizer_image)
 
         if self.refinement is not None:
-            # self.optimizer_refine.step()
-            scaler.step(self.optimizer_refine)
+            self.optimizer_refine.step()
+            # scaler.step(self.optimizer_refine)
 
-        scaler.update()
+        # scaler.update()
 
     def multi_gpu(self):
         self.encoder = nn.DataParallel(self.encoder, device_ids=range(torch.cuda.device_count()))

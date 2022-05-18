@@ -17,7 +17,7 @@ python -u train.py \
  --epochs 100 \
  --schedule 65 \
  --lr 1e-3 \
- --gpu_id 0,1,2,3 \
+ --gpu_id 0 \
  --checkpoint 2021/SLBR-Visible-Watermark-Removal/checkpoint \
  --dataset_dir custom_dataset \
  --nets slbr  \

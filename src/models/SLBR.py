@@ -100,7 +100,6 @@ class SLBR(BasicModel):
         self.model.set_optimizers()
         if self.args.resume != '':
             self.resume(self.args.resume)
-        # self.model.multi_gpu()
        
     def train(self,epoch,scaler):
 
@@ -113,10 +112,8 @@ class SLBR(BasicModel):
         loss_vgg_meter = AverageMeter()
         loss_refine_meter = AverageMeter()
         f1_meter = AverageMeter()
-        # switch to train mode
         self.model.train()
         
-        # self.save_checkpoint()
 
         end = time.time()
         bar = Bar('Processing {} '.format(self.args.nets), max=len(self.train_loader))
@@ -126,20 +123,19 @@ class SLBR(BasicModel):
             inputs = batches['image'].float().to(self.device)
             target = batches['target'].float().to(self.device)
             mask = batches['mask'].float().to(self.device)
-            # wm =  batches['wm'].float().to(self.device)
-            # alpha_gt = batches['alpha'].float().to(self.device)
-            # img_path = batches['img_path']
             self.model.zero_grad_all()
 
-            with torch.cuda.amp.autocast(enabled = True):
-                outputs = self.model(self.norm(inputs))
-                coarse_loss, refine_loss, style_loss, mask_loss = self.loss(
-                    inputs,outputs[0],self.norm(target),outputs[1],mask)
-                total_loss = self.args.lambda_l1*(coarse_loss+refine_loss) + self.args.lambda_mask * (mask_loss)  + style_loss
-            
+            # with torch.cuda.amp.autocast(enabled = True):
+            outputs = self.model(self.norm(inputs))
+            coarse_loss, refine_loss, style_loss, mask_loss = self.loss(
+                inputs,outputs[0],self.norm(target),outputs[1],mask)
+            total_loss = self.args.lambda_l1*(coarse_loss+refine_loss) + self.args.lambda_mask * (mask_loss)  + style_loss
+
             # compute gradient and do SGD step
-            scaler.scale(total_loss).backward() #total_loss.backward()    
+            # scaler.scale(total_loss).backward() 
+            total_loss.backward()    
             self.model.step_all(scaler)
+            # self.model.step_all()
 
             # measure accuracy and record loss
             losses_meter.update(coarse_loss.item(), inputs.size(0))

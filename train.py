@@ -9,7 +9,6 @@ torch.backends.cudnn.benchmark = True
 
 from src.utils.misc import save_checkpoint, adjust_learning_rate
 import src.models as models
-# from datasets.custom_dataset import CustomDatasetDataLoader
 import datasets as datasets
 from options import Options
 import numpy as np
@@ -29,12 +28,6 @@ def main(args):
     else:
         raise ValueError("Not known dataset:\t{}".format(args.dataset))
 
-    # path_dataset = 'custom_dataset'
-    # train_loader = torch.utils.data.DataLoader(CustomDatasetDataLoader(is_train = True,dataset_dir =path_dataset, img_size = 512),batch_size = args.train_batch, shuffle=False,
-    #     num_workers=args.workers, pin_memory=True)
-
-    # val_loader = torch.utils.data.DataLoader(CustomDatasetDataLoader(is_train = True,dataset_dir =path_dataset, img_size = 512),batch_size = args.test_batch, shuffle=False,
-    #     num_workers=args.workers, pin_memory=True)
 
     train_loader = torch.utils.data.DataLoader(dataset_func('train',args),batch_size=args.train_batch, shuffle=True,
         num_workers=args.workers, pin_memory=True)
@@ -45,7 +38,7 @@ def main(args):
     lr = args.lr
     data_loaders = (train_loader,val_loader)
 
-    wandb.init(project="watermark-slbr-1", config = args,mode ="disabled") # ,mode ="disabled"
+    wandb.init(project="watermark-slbr-2", config = args) # ,mode ="disabled"
 
     model = models.__dict__[args.models](datasets=data_loaders, args=args)
 
